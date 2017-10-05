@@ -1,0 +1,34 @@
+In social network like Facebook or Twitter, people send friend requests and accept others' requests as well.
+
+Table request_accepted holds the data of friend acceptance, while requester_id and accepter_id both are the id of a person.
+| requester_id | accepter_id | accept_date|
+|--------------|-------------|------------|
+| 1            | 2           | 2016_06-03 |
+| 1            | 3           | 2016-06-08 |
+| 2            | 3           | 2016-06-08 |
+| 3            | 4           | 2016-06-09 |
+Write a query to find the the people who has most friends and the most friends number. For the sample data above, the result is:
+| id | num |
+|----|-----|
+| 3  | 3   |
+
+# Write your MySQL query statement below
+SELECT id, (IFNULL(rnum,0) + IFNULL(anum,0)) as num
+
+FROM (SELECT R.rid as id, R.rnum as rnum, A.anum as anum 
+FROM (SELECT requester_id as rid, count(*) as rnum FROM request_accepted GROUP BY requester_id) as R LEFT JOIN 
+     (SELECT accepter_id as aid, count(*) as anum FROM request_accepted GROUP BY accepter_id ) as A
+ON R.rid = A. aid
+
+UNION
+
+SELECT A.aid as id, R.rnum as rnum, A.anum as anum 
+FROM (SELECT requester_id as rid, count(*) as rnum FROM request_accepted GROUP BY requester_id) as R RIGHT JOIN 
+     (SELECT accepter_id as aid, count(*) as anum FROM request_accepted GROUP BY accepter_id ) as A
+ON R.rid = A. aid) as connection 
+
+GROUP BY id
+ORDER BY num DESC 
+LIMIT 1
+
+#用LEFT JOIN， UNION, RIGHT JOIN 实现 FULL JOIN; IFNULL(expr,num)处理null值
